@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catch the Ball Game</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: black;
+    }
+
+    canvas {
+      border: 1px solid #fff;
+      display: block;
+      margin: auto;
+    }
+
+    #restartBtn {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+<button id="restartBtn" onclick="restartGame()">Restart</button>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const paddleWidth = 100;
+  const paddleHeight = 10;
+  const ballRadius = 15;
+  let ballSpeed = 4;
+  let ball = {
+    x: canvas.width / 2,
+    y: canvas.height - 30,
+    dx: ballSpeed,
+    dy: -ballSpeed
+  };
+
+  let paddleX = (canvas.width - paddleWidth) / 2;
+  const paddleSpeed = 7;
+  let rightPressed = false;
+  let leftPressed = false;
+
+  let score = 0;
+  let level = 1;
+
+  function drawBall(x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+
+    const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+    ctx.fillStyle = randomColor;
+
+    ctx.fill();
+    ctx.closePath();
+  }
+
+  function drawPaddle() {
+    ctx.beginPath();
+    ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.closePath();
+  }
+
+  function drawScore() {
+    ctx.font = '20px Arial';
+    ctx.fillStyle = '#fff';
+    ctx.fillText('Score: ' + score, 10, 20);
+    ctx.fillText('Level: ' + level, canvas.width - 80, 20);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawBall(ball.x, ball.y);
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+
+    // Bounce off the walls
+    if (ball.x + ball.dx > canvas.width - ballRadius || ball.x + ball.dx < ballRadius) {
+      ball.dx = -ball.dx;
+    }
+
+    // Bounce off the ceiling
+    if (ball.y + ball.dy < ballRadius) {
+      ball.dy = -ball.dy;
+    } else if (ball.y + ball.dy > canvas.height - ballRadius - paddleHeight) {
+      // Check if the ball hits the paddle
+      if (ball.x > paddleX && ball.x < paddleX + paddleWidth && ball.dy > 0) {
+        ball.dy = -ball.dy;
+
+        // Change the horizontal direction randomly
+        ball.dx = (Math.random() - 0.5) * 2 * ballSpeed;
+
+        // Increment the score
+        score++;
+
+        // Increase the level and speed every 5 points
+        if (score % 5 === 0) {
+          level++;
+          ballSpeed += 1; // Увеличиваем скорость мяча
+        }
+      } else {
+        // Game over if the ball hits the ground
+        gameOver();
+        return;
+      }
+    }
+
+    drawPaddle();
+    drawScore();
+
+    // Move the paddle
+    if (rightPressed && paddleX < canvas.width - paddleWidth) {
+      paddleX += paddleSpeed;
+    } else if (leftPressed && paddleX > 0) {
+      paddleX -= paddleSpeed;
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  function restartGame() {
+    ball = {
+      x: canvas.width / 2,
+      y: canvas.height - 30,
+      dx: ballSpeed,
+      dy: -ballSpeed
+    };
+    paddleX = (canvas.width - paddleWidth) / 2;
+    ballSpeed = 4;
+    score = 0;
+    level = 1;
+    document.getElementById('restartBtn').style.display = 'none';
+    draw();
+  }
+
+  function gameOver() {
+    document.getElementById('restartBtn').style.display = 'block';
+  }
+
+  function keyDownHandler(e) {
+    if (e.key === 'Right' || e.key === 'ArrowRight') {
+      rightPressed = true;
+    } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
+      leftPressed = true;
+    }
+  }
+
+  function keyUpHandler(e) {
+    if (e.key === 'Right' || e.key === 'ArrowRight') {
+      rightPressed = false;
+    } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
+      leftPressed = false;
+    }
+  }
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    paddleX = (canvas.width - paddleWidth) / 2;
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height - 30;
+  }
+
+  document.addEventListener('keydown', keyDownHandler, false);
+  document.addEventListener('keyup', keyUpHandler, false);
+  window.addEventListener('resize', resizeCanvas, false);
+
+  resizeCanvas();
+  draw();
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
